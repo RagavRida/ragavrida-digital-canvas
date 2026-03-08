@@ -227,13 +227,9 @@ body::before {
 }
 
 .reveal {
-  transform-origin: top center;
-  transform: rotateX(90deg) translateZ(-200px);
   opacity: 0;
-  transition:
-    transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
+  will-change: transform, opacity;
 }
 
 /* Crease shadow overlay */
@@ -249,27 +245,51 @@ body::before {
     hsl(0 0% 0% / 0.2) 40%,
     transparent 100%
   );
-  opacity: 1;
-  transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
 }
 
 .reveal.visible {
-  transform: rotateX(0deg) translateZ(0);
-  opacity: 1;
+  animation: fold-in 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .reveal.visible::after {
-  opacity: 0;
+  animation: crease-fade 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fold-in {
+  0% {
+    opacity: 0;
+    transform-origin: top center;
+    transform: rotateX(90deg) translateZ(-200px);
+  }
+  100% {
+    opacity: 1;
+    transform-origin: top center;
+    transform: rotateX(0deg) translateZ(0);
+  }
+}
+
+@keyframes crease-fade {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Exit fold backward */
 .reveal.fold-exit {
-  transform-origin: bottom center;
-  transform: rotateX(-60deg) scale(0.95);
-  opacity: 0;
-  transition:
-    transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: fold-out 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fold-out {
+  0% {
+    opacity: 1;
+    transform-origin: bottom center;
+    transform: rotateX(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform-origin: bottom center;
+    transform: rotateX(-60deg) scale(0.95);
+  }
 }
 
 /* Stagger children */
