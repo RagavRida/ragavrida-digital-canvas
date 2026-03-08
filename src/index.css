@@ -234,6 +234,8 @@ body::before {
     transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
 
 /* Crease shadow overlay */
