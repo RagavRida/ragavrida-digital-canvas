@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Syne", "sans-serif"],
-        body: ["Space Mono", "monospace"],
+        display: ["Clash Display", "sans-serif"],
+        body: ["IBM Plex Mono", "monospace"],
       },
       colors: {
         gold: "hsl(var(--gold))",
