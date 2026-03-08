@@ -1,86 +1,102 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SKILL_GROUPS = [
   {
     category: "Languages",
     skills: ["Python", "TypeScript", "Java", "C++", "CSS", "SQL"],
+    cycle: ["SQL", "Java", "CSS", "C++", "TypeScript", "Python"],
   },
   {
     category: "AI & Data",
     skills: ["Machine Learning", "Quantum Computing", "LLMs", "Data Science", "Jupyter Notebooks", "Research Agents"],
+    cycle: ["Data Science", "LLMs", "Jupyter Notebooks", "Quantum Computing", "Research Agents", "Machine Learning"],
   },
   {
     category: "Frameworks & Tools",
     skills: ["React", "MCP Protocol", "Git & GitHub", "Software Agents", "Algorithm Design", "Open Source"],
+    cycle: ["Open Source", "Git & GitHub", "Algorithm Design", "Software Agents", "React", "MCP Protocol"],
   },
 ];
 
-const FAKE_SKILLS = [
-  "Bootstrap", "COBOL", "Pascal", "Fortran", "Assembly", "Perl",
-  "Haskell", "Erlang", "Prolog", "Lisp", "Smalltalk", "Ada",
-  "Delphi", "BASIC", "Logo", "Scheme", "OCaml", "Elm",
-  "CoffeeScript", "ActionScript", "Flash", "jQuery", "Backbone",
-  "Grunt", "Bower", "Knockout", "Silverlight", "XSLT",
-];
+const CYCLE_MS = 80;
+const STAGGER_MS = 120;
 
-const CYCLE_INTERVAL = 80;
-const LOCK_TIMES = [800, 1100, 1400]; // per column/group
+function springScale(t: number): number {
+  const stiffness = 200;
+  const damping = 12;
+  const omega = Math.sqrt(stiffness);
+  const zeta = damping / (2 * omega);
+  if (zeta < 1) {
+    const omegaD = omega * Math.sqrt(1 - zeta * zeta);
+    return 1 - Math.exp(-zeta * omega * t) * (Math.cos(omegaD * t) + (zeta * omega / omegaD) * Math.sin(omegaD * t));
+  }
+  return 1 - (1 + omega * t) * Math.exp(-omega * t);
+}
 
 const SlotChip = ({
   realSkill,
+  cyclePool,
   lockDelay,
   triggered,
 }: {
   realSkill: string;
+  cyclePool: string[];
   lockDelay: number;
   triggered: boolean;
 }) => {
   const [display, setDisplay] = useState(realSkill);
   const [locked, setLocked] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [scale, setScale] = useState(1);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cycleIdx = useRef(0);
 
   useEffect(() => {
-    if (!triggered) {
-      setDisplay(realSkill);
-      setLocked(false);
-      setFlash(false);
-      return;
-    }
+    if (!triggered) return;
 
-    // Start cycling
+    // Start cycling through the pool
     intervalRef.current = setInterval(() => {
-      setDisplay(FAKE_SKILLS[Math.floor(Math.random() * FAKE_SKILLS.length)]);
-    }, CYCLE_INTERVAL);
+      setDisplay(cyclePool[cycleIdx.current % cyclePool.length]);
+      cycleIdx.current++;
+    }, CYCLE_MS);
 
-    // Lock in after delay
     const lockTimer = setTimeout(() => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setDisplay(realSkill);
       setLocked(true);
       setFlash(true);
-      setTimeout(() => setFlash(false), 300);
+
+      // Spring scale animation
+      const start = performance.now();
+      const duration = 400;
+      const animateSpring = (now: number) => {
+        const t = Math.min((now - start) / duration, 1);
+        const s = springScale(t * 2.5); // compress time for snappy feel
+        setScale(1 + (0.08) * (1 - s));
+        if (t < 1) requestAnimationFrame(animateSpring);
+        else setScale(1);
+      };
+      requestAnimationFrame(animateSpring);
+
+      setTimeout(() => setFlash(false), 200);
     }, lockDelay);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       clearTimeout(lockTimer);
     };
-  }, [triggered, realSkill, lockDelay]);
+  }, [triggered, realSkill, lockDelay, cyclePool]);
 
   return (
     <span
-      className={`skill-chip font-body text-xs px-4 py-2 border bg-background text-foreground hoverable inline-block transition-all duration-200 ${
-        flash
-          ? "border-gold shadow-[0_0_16px_hsl(40_70%_60%/0.7),0_0_32px_hsl(40_70%_60%/0.3)] scale-110"
-          : locked
-          ? "border-border"
-          : "border-primary/40"
-      }`}
+      className="skill-chip font-body text-xs px-4 py-2 border bg-background text-foreground hoverable inline-block"
       style={{
         minWidth: "90px",
         textAlign: "center",
-        ...(flash ? { color: "hsl(40 70% 60%)" } : {}),
+        transform: `scale(${scale})`,
+        borderColor: flash ? "#E85D26" : undefined,
+        boxShadow: flash ? "0 0 14px rgba(232,93,38,0.6), 0 0 28px rgba(232,93,38,0.2)" : undefined,
+        transition: locked && !flash ? "border-color 200ms, box-shadow 200ms" : undefined,
       }}
     >
       {display}
@@ -91,7 +107,7 @@ const SlotChip = ({
 const Skills = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [triggered, setTriggered] = useState(false);
-  const [jackpot, setJackpot] = useState<number | null>(null);
+  const [lockedGroups, setLockedGroups] = useState<boolean[]>([false, false, false]);
   const hasPlayed = useRef(false);
 
   useEffect(() => {
@@ -105,22 +121,34 @@ const Skills = () => {
             hasPlayed.current = true;
             setTriggered(true);
 
-            // Jackpot flash per group after their column locks
-            LOCK_TIMES.forEach((t, i) => {
+            // Mark groups as locked after their last tag locks
+            SKILL_GROUPS.forEach((group, gi) => {
+              const lastTagDelay = (group.skills.length - 1) * STAGGER_MS;
+              // Base offset per group: all tags in previous groups
+              let baseOffset = 0;
+              for (let i = 0; i < gi; i++) baseOffset += SKILL_GROUPS[i].skills.length * STAGGER_MS;
+              const totalDelay = baseOffset + lastTagDelay + 250;
+
               setTimeout(() => {
-                setJackpot(i);
-                setTimeout(() => setJackpot(null), 400);
-              }, t + 200);
+                setLockedGroups((prev) => {
+                  const next = [...prev];
+                  next[gi] = true;
+                  return next;
+                });
+              }, totalDelay);
             });
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.3 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  // Compute global tag index offset for stagger
+  let globalTagIdx = 0;
 
   return (
     <section id="skills" ref={sectionRef} className="py-24 bg-surface">
@@ -137,37 +165,36 @@ const Skills = () => {
           </h2>
         </div>
         <div className="space-y-12">
-          {SKILL_GROUPS.map((group, groupIdx) => (
-            <div key={group.category} className="reveal">
-              <h3
-                className={`font-display font-bold text-sm uppercase tracking-widest mb-4 transition-all duration-300 ${
-                  jackpot === groupIdx
-                    ? "text-gold scale-105 drop-shadow-[0_0_12px_hsl(40_70%_60%/0.8)]"
-                    : "text-gold"
-                }`}
-                style={{
-                  transformOrigin: "left center",
-                  ...(jackpot === groupIdx
-                    ? { textShadow: "0 0 20px hsl(40 70% 60% / 0.9), 0 0 40px hsl(40 70% 60% / 0.4)" }
-                    : {}),
-                }}
-              >
-                {jackpot === groupIdx ? "🎰 " : ""}
-                {group.category}
-                {jackpot === groupIdx ? " 🎰" : ""}
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {group.skills.map((skill) => (
-                  <SlotChip
-                    key={skill}
-                    realSkill={skill}
-                    lockDelay={LOCK_TIMES[groupIdx]}
-                    triggered={triggered}
-                  />
-                ))}
+          {SKILL_GROUPS.map((group, groupIdx) => {
+            const groupStartIdx = globalTagIdx;
+            globalTagIdx += group.skills.length;
+
+            return (
+              <div key={group.category} className="reveal">
+                <h3
+                  className="font-display font-bold text-sm uppercase mb-4 text-gold"
+                  style={{
+                    letterSpacing: lockedGroups[groupIdx] ? "6px" : "normal",
+                    transition: "letter-spacing 400ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    transformOrigin: "left center",
+                  }}
+                >
+                  {group.category}
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {group.skills.map((skill, skillIdx) => (
+                    <SlotChip
+                      key={skill}
+                      realSkill={skill}
+                      cyclePool={group.cycle}
+                      lockDelay={(groupStartIdx + skillIdx) * STAGGER_MS + 300}
+                      triggered={triggered}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
