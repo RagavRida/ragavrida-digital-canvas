@@ -256,16 +256,16 @@ const TimelineEntry = ({
 
   return (
     <div
-      className={`relative flex flex-col md:flex-row ${
+      className={`relative flex items-start gap-4 md:gap-8 ${
         isLeft ? "md:flex-row" : "md:flex-row-reverse"
-      } items-start gap-8`}
+      }`}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
     >
       {/* Marker square */}
       <div
         ref={markerRef}
-        className="absolute left-4 md:left-1/2 w-3 h-3 bg-primary -translate-x-1/2 mt-2 z-10"
+        className="absolute left-2 md:left-1/2 w-2.5 h-2.5 md:w-3 md:h-3 bg-primary -translate-x-1/2 mt-1.5 md:mt-2 z-10"
         style={{
           transform: `translateX(-50%) scale(${markerPopped ? 1 : 0})`,
           transition: markerPopped
@@ -291,12 +291,12 @@ const TimelineEntry = ({
 
       {/* Content card */}
       <div
-        className={`ml-12 md:ml-0 md:w-1/2 ${isLeft ? "md:pr-16 md:text-right" : "md:pl-16"}`}
+        className={`ml-8 md:ml-0 md:w-1/2 ${isLeft ? "md:pr-16 md:text-right" : "md:pl-16"}`}
         style={{
           opacity: cardRevealed ? 1 : 0,
           transform: cardRevealed
             ? "translateX(0)"
-            : `translateX(${isLeft ? "-40px" : "40px"})`,
+            : `translateX(40px)`,
           transition: "opacity 600ms ease-out, transform 600ms ease-out",
         }}
       >
