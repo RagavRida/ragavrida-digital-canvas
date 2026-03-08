@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import HeroScene from "./HeroScene";
 
 const ROLES = [
   "AI Researcher",
@@ -20,7 +21,8 @@ const Hero = () => {
 
   return (
     <section className="min-h-screen flex items-center pt-16 relative overflow-hidden">
-      <div className="container px-6 grid md:grid-cols-2 gap-12 items-center">
+      <HeroScene />
+      <div className="container px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
         {/* Left */}
         <div className="reveal">
           <p className="font-body text-xs uppercase tracking-[0.3em] text-muted-foreground mb-4">
