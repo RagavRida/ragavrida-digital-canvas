@@ -183,7 +183,7 @@ const Timeline = () => {
           {/* Vertical line — draws downward */}
           <div
             ref={lineRef}
-            className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-primary/40 origin-top"
+            className="absolute left-2 md:left-1/2 top-0 bottom-0 w-px bg-primary/40 origin-top"
             style={{
               transform: `scaleY(${inView ? scrollProgress * 1.2 : 0})`,
               transition: inView ? "transform 100ms linear" : "none",
@@ -193,7 +193,7 @@ const Timeline = () => {
           {/* Traveling glowing dot */}
           <div
             ref={dotRef}
-            className="absolute left-4 md:left-1/2 w-3 h-3 rounded-full bg-primary -translate-x-1/2 z-20 pointer-events-none"
+            className="absolute left-2 md:left-1/2 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-primary -translate-x-1/2 z-20 pointer-events-none"
             style={{
               top: `${Math.min(scrollProgress * 120, 100)}%`,
               opacity: inView ? 1 : 0,
