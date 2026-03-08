@@ -23,14 +23,14 @@ const Navbar = () => {
             <a
               key={l.label}
               href={l.href}
-              className="font-body text-xs uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+              className="font-body text-xs uppercase tracking-[0.15em] text-muted-foreground hover:text-primary transition-colors"
             >
               {l.label}
             </a>
           ))}
           <a
             href="mailto:ragavrida@gmail.com"
-            className="bg-primary text-primary-foreground font-body text-xs uppercase tracking-widest px-5 py-2 cut-corner hover:brightness-110 transition"
+            className="bg-primary text-primary-foreground font-display font-bold text-xs uppercase tracking-widest px-5 py-2 cut-corner hover:brightness-110 transition"
           >
             Hire Me
           </a>
