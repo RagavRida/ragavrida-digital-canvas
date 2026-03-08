@@ -17,19 +17,11 @@ const Index = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.remove("fold-exit");
             entry.target.classList.add("visible");
-          } else if (entry.target.classList.contains("visible")) {
-            // Only fold-exit if section has scrolled above viewport
-            const rect = entry.boundingClientRect;
-            if (rect.top < 0) {
-              entry.target.classList.remove("visible");
-              entry.target.classList.add("fold-exit");
-            }
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     );
 
     document.querySelectorAll(".reveal, .stagger").forEach((el) => {
