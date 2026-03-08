@@ -20,7 +20,6 @@ const Index = () => {
             entry.target.classList.remove("fold-exit");
             entry.target.classList.add("visible");
           } else if (entry.target.classList.contains("visible")) {
-            // Only fold-exit if section has scrolled above viewport
             const rect = entry.boundingClientRect;
             if (rect.top < 0) {
               entry.target.classList.remove("visible");
@@ -29,7 +28,7 @@ const Index = () => {
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.01, rootMargin: "0px 0px 200px 0px" }
     );
 
     document.querySelectorAll(".reveal, .stagger").forEach((el) => {
