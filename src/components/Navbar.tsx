@@ -32,7 +32,7 @@ const Navbar = () => {
             href="mailto:ragavrida@gmail.com"
             className="bg-primary text-primary-foreground font-display font-bold text-xs uppercase tracking-widest px-5 py-2 cut-corner hover:brightness-110 transition"
           >
-            Hire Me
+            Talk to Me
           </a>
         </div>
 
